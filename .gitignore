@@ -1,0 +1,7 @@
+build
+*.img
+
+.ycm_extra_conf.py
+*.py[cod]
+
+.color_coded
