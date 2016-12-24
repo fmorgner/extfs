@@ -27,7 +27,7 @@ namespace fs
     read_superblock(m_stream, m_primarySuperblock);
     }
 
-  extfs::operator bool() const
+  bool extfs::open() const
     {
     return m_stream && m_primarySuperblock.magic_number == kExtfsMagic;
     }

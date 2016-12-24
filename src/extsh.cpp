@@ -8,7 +8,7 @@ int main(int argc, char const * argv[])
   auto const & path = [&]{ return std::string{argc > 1 ? argv[1] : "vdisk.img"}; }();
   auto const & disk = fs::extfs{path};
 
-  if(disk)
+  if(disk.open())
     {
     std::clog << "[EXT2] Successfully opened ext*fs at: '" << path << "'\n";
     }
