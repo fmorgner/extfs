@@ -52,6 +52,31 @@ namespace fs
      */
     bool open() const;
 
+    /**
+     * @brief Get the label of the file system
+     *
+     * The ext2/3/4 file systems allow the use of a label for human readable identification of a file system. Because they are
+     * user configurable, there are no guarantees on whether or not the label is unique. Thus, a file system should never be
+     * identified solely by its label.
+     *
+     * @return A #std::string containing the file system label. The string might be empty if no label is set.
+     *
+     * @since 1.0
+     */
+    std::string label() const;
+
+    /**
+     * @brief Check if the file system has a label
+     *
+     * ext2/3/4 file systems may or may not have a label. If a label is present, it has a maximum length of 15 character in
+     * ISO-Latin-1 encoding.
+     *
+     * @return @p true, iff. the file system has a @p non-null label configured, @p false otherwise
+     *
+     * @since 1.0
+     */
+    bool has_label() const;
+
     private:
       std::fstream m_stream{};
       detail::extfs_superblock m_primarySuperblock{};

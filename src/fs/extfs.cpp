@@ -32,4 +32,14 @@ namespace fs
     return m_stream && m_primarySuperblock.magic_number == kExtfsMagic;
     }
 
+  std::string extfs::label() const
+    {
+    return std::string{m_primarySuperblock.label.cbegin(), m_primarySuperblock.label.cend()};
+    }
+
+  bool extfs::has_label() const
+    {
+    return m_primarySuperblock.label[0];
+    }
+
   }

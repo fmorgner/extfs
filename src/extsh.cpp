@@ -10,10 +10,14 @@ int main(int argc, char const * argv[])
 
   if(disk.open())
     {
-    std::clog << "[EXT2] Successfully opened ext*fs at: '" << path << "'\n";
+    std::clog << "[EXTSH] Successfully opened ext*fs at: '" << path << "'\n";
+    if(disk.has_label())
+      {
+      std::clog << "[EXTSH] The filesystem is labeled '" << disk.label() << "'\n";
+      }
     }
   else
     {
-    std::clog << "[EXT2] Failed to open ext*fs at: '" << path << "'\n";
+    std::clog << "[EXTSH] Failed to open ext*fs at: '" << path << "'\n";
     }
   }
