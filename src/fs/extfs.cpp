@@ -9,11 +9,11 @@ namespace
   auto constexpr kPrimarySuperblockLocation = 1024;
   auto constexpr kExtfsMagic = 0xef53;
 
-  auto read_superblock(std::fstream & stream, fs::detail::extfs_superblock & superblock)
+  auto read_superblock(std::fstream & stream, fs::detail::superblock & superblock)
     {
     auto const originalPosition = stream.tellg();
     stream.seekg(kPrimarySuperblockLocation);
-    stream.read(reinterpret_cast<char *>(&superblock), sizeof(fs::detail::extfs_superblock));
+    stream.read(reinterpret_cast<char *>(&superblock), sizeof(fs::detail::superblock));
     stream.seekg(originalPosition);
     }
   }

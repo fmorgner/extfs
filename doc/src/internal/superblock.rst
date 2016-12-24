@@ -38,5 +38,5 @@ Structure
 Implementation
 --------------
 
-.. doxygenstruct:: fs::detail::extfs_superblock
+.. doxygenstruct:: fs::detail::superblock
   :members:

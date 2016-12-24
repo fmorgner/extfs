@@ -78,7 +78,7 @@ namespace fs
     bool has_label() const;
 
     private:
-      detail::extfs_superblock m_primarySuperblock{};
+      detail::superblock m_primarySuperblock{};
       std::fstream m_stream{};
     };
 

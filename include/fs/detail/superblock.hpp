@@ -14,7 +14,7 @@ namespace fs::detail
    *
    * @since 1.0
    */
-  struct extfs_superblock
+  struct superblock
     {
     u32 const inodes_count{}; ///< The total number of inodes in the file system
     u32 const blocks_count{}; ///< The total number of blocks in the file system
@@ -66,7 +66,7 @@ namespace fs::detail
     u08_arr<760> const _reserved1{}; ///< Padding
     };
 
-  static_assert(sizeof(extfs_superblock) == 1024, "An ext* super block must have an exact size of 1024 byte!");
+  static_assert(sizeof(superblock) == 1024, "An ext2/3/4 super block must have an exact size of 1024 bytes!");
 
   }
 
