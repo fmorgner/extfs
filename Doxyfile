@@ -36,3 +36,4 @@ ALIASES                += "endrst=@endverbatim"
 HIDE_SCOPE_NAMES       = YES
 EXTRACT_PRIVATE        = NO
 QUIET                  = YES
+TAGFILES               += "doc/cppreference.tag.xml=http://en.cppreference.com/w/"
