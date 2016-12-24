@@ -3,6 +3,9 @@
 
 **extfs** is a simple implementation of the ext family (2/3/4) of file systems.
 
+[![Documentation Status](https://readthedocs.org/projects/extfs/badge/?version=latest)](http://extfs.readthedocs.io/?badge=latest)
+
+
 #Disclaimer
 I take no responsibility for any damage done to your main file system or other
 data.
