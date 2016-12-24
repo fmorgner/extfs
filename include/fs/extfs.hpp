@@ -78,8 +78,8 @@ namespace fs
     bool has_label() const;
 
     private:
-      std::fstream m_stream{};
       detail::extfs_superblock m_primarySuperblock{};
+      std::fstream m_stream{};
     };
 
   }
