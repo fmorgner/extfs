@@ -12,4 +12,5 @@ User documentation
 .. toctree::
    :maxdepth: 2
 
-   api
+   api/index
+   internal/index

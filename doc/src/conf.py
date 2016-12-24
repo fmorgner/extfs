@@ -9,10 +9,14 @@ subprocess.call('cd ../../ && doxygen', shell=True)
 
 html_theme = 'sphinx_rtd_theme'
 
-extensions = ['breathe']
+extensions = [
+    'breathe',
+    'sphinx.ext.todo',
+]
 
 breathe_projects = {'extfs': os.path.abspath('../../build/xml') }
 breathe_default_project = 'extfs'
+
 
 source_suffix = '.rst'
 master_doc = 'index'
@@ -35,7 +39,7 @@ exclude_patterns = [
 
 pygments_style = 'sphinx'
 
-todo_include_todos = False
+todo_include_todos = True
 
 htmlhelp_basename = 'extfsdoc'
 
