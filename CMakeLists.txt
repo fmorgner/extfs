@@ -23,4 +23,18 @@ add_subdirectory("src")
 if(${EXTFS_ENABLE_TESTS})
   include("CUTE")
   add_subdirectory("test")
+
+  if(${CMAKE_BUILD_TYPE} STREQUAL "Coverage")
+    include("CodeCoverage")
+    add_coverage(${PROJECT_NAME}_coverage
+      COMMAND ${CMAKE_COMMAND} --build . --target test
+      OUTPUT coverage
+      DEPENDENCIES ${CUTE_TARGETS}
+      SOURCE_DIRECTORIES "${PROJECT_SOURCE_DIR}/src/fs/*"
+      "${PROJECT_SOURCE_DIR}/include/fs/*"
+      QUIET
+      HTML_REPORT
+      )
+  endif()
 endif()
+

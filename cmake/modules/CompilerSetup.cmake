@@ -113,3 +113,10 @@ set(
   CACHE STRING "Flags used by the compiler during release builds for minimum size."
   FORCE
   )
+
+# Export additional C++ compile flags for coverage builds
+set(
+  CMAKE_CXX_FLAGS_COVERAGE "-O0 -g --coverage"
+  CACHE STRING "Flags used by the compiler during coverage builds."
+  FORCE
+  )

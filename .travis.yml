@@ -1,0 +1,97 @@
+language: cpp
+
+matrix:
+  include:
+    - compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - george-edison55-precise-backports
+          packages:
+            - g++-6
+            - cmake
+            - cmake-data
+      env:
+        COMPILER=g++-6 C_COMPILER=gcc-6 BUILD_TYPE=Debug
+    - compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - george-edison55-precise-backports
+          packages:
+            - g++-6
+            - cmake
+            - cmake-data
+      env:
+        COMPILER=g++-6 C_COMPILER=gcc-6 BUILD_TYPE=Release
+    - compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - george-edison55-precise-backports
+          packages:
+            - tar
+            - rubygems
+            - g++-6
+            - cmake
+            - cmake-data
+      env:
+        COMPILER=g++-6 C_COMPILER=gcc-6 BUILD_TYPE=Coverage
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.8
+            - george-edison55-precise-backports
+          packages:
+            - clang-3.8
+            - cmake
+            - cmake-data
+      env:
+        COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.8
+            - george-edison55-precise-backports
+          packages:
+            - clang-3.8
+            - cmake
+            - cmake-data
+      env:
+        COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Release
+
+before_install:
+  - export CC=${C_COMPILER}
+  - export CXX=${COMPILER}
+  - export CONAN_USER_HOME=${PWD}
+
+install:
+  - wget http://downloads.conan.io/latest_debian -O conan.deb
+  - sudo dpkg -i conan.deb
+  - rm conan.deb
+  - conan install . --build=missing >/dev/null
+  - if [ "$BUILD_TYPE" == "Coverage" ]; then
+    wget http://ftp.de.debian.org/debian/pool/main/l/lcov/lcov_1.11.orig.tar.gz;
+    tar xf lcov_1.11.orig.tar.gz;
+    sudo make -C lcov-1.11/ install;
+    gem install coveralls-lcov;
+    sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-6 90;
+    fi
+
+script:
+  - mkdir -p build
+  - cd build
+  - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCUTE_RUN_DURING_BUILD=Off
+  - cmake --build . -- -j$(nproc)
+  - ctest
+  - if [ "$BUILD_TYPE" == "Coverage" ]; then cmake --build . --target extfs_coverage; fi
+
+after_success:
+  - if [ "$BUILD_TYPE" == "Coverage" ]; then coveralls-lcov --repo-token ${COVERALLS_API_TOKEN} coverage.info.cleaned; fi
