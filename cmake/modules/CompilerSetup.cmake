@@ -24,9 +24,6 @@ string(STRIP ${LINES} LINES)
 string(REPLACE " " "" LINES ${LINES})
 string(REPLACE "\n" ";" LINES ${LINES})
 
-# Trick CMake to explicitely add /usr/include to the system headers
-list(APPEND LINES "/usr/bin/../include")
-
 # Add system header locations to the system header search-path
 include_directories(SYSTEM ${LINES})
 
