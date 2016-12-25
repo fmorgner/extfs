@@ -34,7 +34,7 @@ namespace fs
 
   std::string extfs::label() const
     {
-    return std::string{m_primarySuperblock.label.cbegin(), m_primarySuperblock.label.cend()};
+    return std::string{m_primarySuperblock.label.data()};
     }
 
   bool extfs::has_label() const
