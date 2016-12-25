@@ -15,6 +15,12 @@ include("CompilerSetup")
 include("ConanPackages")
 
 option(EXTFS_BUILD_STATIC "Build extfs as a static library" ON)
+option(EXTFS_ENABLE_TESTS "Enable CUTE unit tests" ON)
 
 include_directories("include")
 add_subdirectory("src")
+
+if(${EXTFS_ENABLE_TESTS})
+  include("CUTE")
+  add_subdirectory("test")
+endif()
