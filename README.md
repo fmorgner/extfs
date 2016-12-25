@@ -3,8 +3,7 @@
 
 **extfs** is a simple implementation of the ext family (2/3/4) of file systems.
 
-[![Documentation Status](https://readthedocs.org/projects/extfs/badge/?version=latest)](http://extfs.readthedocs.io/?badge=latest)
-
+[![Documentation Status](https://readthedocs.org/projects/extfs/badge/?version=latest)](http://extfs.readthedocs.io/?badge=latest) [![Build Status](https://travis-ci.org/fmorgner/extfs.svg?branch=master)](https://travis-ci.org/fmorgner/extfs) [![Coverage Status](https://coveralls.io/repos/github/fmorgner/extfs/badge.svg?branch=master)](https://coveralls.io/github/fmorgner/extfs?branch=master)
 
 #Disclaimer
 I take no responsibility for any damage done to your main file system or other
