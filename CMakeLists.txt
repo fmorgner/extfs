@@ -26,14 +26,12 @@ if(${EXTFS_ENABLE_TESTS})
 
   if("${CMAKE_BUILD_TYPE}" STREQUAL "Coverage")
     include("CodeCoverage")
-    add_coverage(${PROJECT_NAME}_coverage
-      COMMAND ${CMAKE_COMMAND} --build . --target test
-      OUTPUT coverage
+    add_coverage(${PROJECT_NAME}
+      COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target test
       DEPENDENCIES ${CUTE_TARGETS}
       SOURCE_DIRECTORIES "${PROJECT_SOURCE_DIR}/src/fs/*"
       "${PROJECT_SOURCE_DIR}/include/fs/**.hpp"
       QUIET
-      HTML_REPORT
       )
   endif()
 endif()

@@ -44,6 +44,10 @@ if(NOT CMAKE_COMPILER_IS_GNUCXX)
   endif()
 endif()
 
+if(NOT (CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "Coverage"))
+  message( WARNING "Code coverage results with an optimized (non-Debug) build may be misleading" )
+endif()
+
 set(CMAKE_CXX_FLAGS_COVERAGE "-g -O0 --coverage"
   CACHE
   STRING
@@ -78,90 +82,121 @@ mark_as_advanced(
   CMAKE_SHARED_LINKER_FLAGS_COVERAGE
   )
 
-if(NOT (CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "Coverage"))
-  message( WARNING "Code coverage results with an optimized (non-Debug) build may be misleading" )
+if(NOT TARGET "coverage")
+  add_custom_target("coverage" ;
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    )
 endif()
 
 function(add_coverage TARGET_NAME)
 
-  set(OPTIONS HTML_REPORT QUIET)
+  set(OPTIONS REPORT QUIET)
   set(SV_ARGUMENTS OUTPUT)
   set(MV_ARGUMENTS DEPENDENCIES SOURCE_DIRECTORIES COMMAND)
   cmake_parse_arguments(ADD_COVERAGE "${OPTIONS}" "${SV_ARGUMENTS}" "${MV_ARGUMENTS}" ${ARGN})
 
-  set(COVERAGE_INFO "${CMAKE_BINARY_DIR}/${ADD_COVERAGE_OUTPUT}.info")
-  set(COVERAGE_CLEANED "${COVERAGE_INFO}.cleaned")
+  if(${ADD_COVERAGE_OUTPUT})
+    set(COVERAGE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/Coverage/${ADD_COVERAGE_OUTPUT}")
+  else()
+    set(COVERAGE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/Coverage/${TARGET_NAME}")
+  endif()
+
+  if(ADD_COVERAGE_QUIET)
+    set(COVERAGE_QUIET_FLAG "-q")
+  else()
+    unset(COVERAGE_QUIET_FLAG)
+  endif()
+
+  if(ADD_COVERAGE_REPORT)
+    set(COVERAGE_REPORT ON)
+  else()
+    set(COVERAGE_REPORT OFF)
+  endif()
+
+  set(COVERAGE_RAW_DATA "${COVERAGE_OUTPUT_DIRECTORY}/${TARGET_NAME}.raw")
+  set(COVERAGE_CLEAN_DATA "${COVERAGE_OUTPUT_DIRECTORY}/${TARGET_NAME}.clean")
+  set(COVERAGE_COMMENT_PREFIX "[CodeCoverage:${TARGET_NAME}]")
+  set(COVERAGE_REPORT_DIRECTORY "${COVERAGE_OUTPUT_DIRECTORY}/report")
+  set(COVERAGE_DEPENDENCIES "${ADD_COVERAGE_DEPENDENCIES}")
+  set(COVERAGE_DRIVER "${ADD_COVERAGE_COMMAND}")
+
+  set(COVERAGE_TARGET_NAME "coverage_${TARGET_NAME}")
+
+  set_property(DIRECTORY APPEND PROPERTY
+    ADDITIONAL_MAKE_CLEAN_FILES "${COVERAGE_OUTPUT_DIRECTORY}"
+    )
 
   foreach(SOURCE_DIRECTORY IN LISTS ADD_COVERAGE_SOURCE_DIRECTORIES)
     list(APPEND EXTRACT_DIRECTORIES "'${SOURCE_DIRECTORY}'")
   endforeach()
 
-  if(NOT TARGET ${TARGET_NAME})
-    string(REPLACE ";" " " TEST_DRIVER "${ADD_COVERAGE_COMMAND}")
-    message(STATUS "Registering coverage target '${TARGET_NAME}' with driver '${TEST_DRIVER}'")
+  if(NOT TARGET ${COVERAGE_TARGET_NAME})
+    string(REPLACE ";" " " DRIVER "${COVERAGE_DRIVER}")
+    message(STATUS "Registering coverage target '${COVERAGE_TARGET_NAME}' with driver '${DRIVER}'")
+
+    add_custom_target(${COVERAGE_TARGET_NAME} ;
+      WORKING_DIRECTORY ${COVERAGE_OUTPUT_DIRECTORY}
+      DEPENDS ${COVERAGE_DEPENDENCIES}
+      )
+
+    file(MAKE_DIRECTORY ${COVERAGE_OUTPUT_DIRECTORY})
   endif()
 
-  add_custom_target(${TARGET_NAME} ;
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-    DEPENDS ${ADD_COVERAGE_DEPENDENCIES}
-    )
+  add_dependencies("coverage" ${COVERAGE_TARGET_NAME})
 
-  if(ADD_COVERAGE_QUIET)
-    set(ADD_COVERAGE_QUIET "-q")
-  else()
-    unset(ADD_COVERAGE_QUIET)
-  endif()
-
-  add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+  add_custom_command(TARGET ${COVERAGE_TARGET_NAME} POST_BUILD
     COMMAND ${LCOV_PATH} --directory .
-                         --zerocounters ${ADD_COVERAGE_QUIET}
-    COMMENT "[CodeCoverage] Resetting coverage counters ..."
+                         --zerocounters
+                         ${COVERAGE_QUIET_FLAG}
+    COMMENT "${COVERAGE_COMMENT_PREFIX} Resetting coverage counters ..."
     )
 
-  add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+  add_custom_command(TARGET ${COVERAGE_TARGET_NAME} POST_BUILD
     COMMAND ${ADD_COVERAGE_COMMAND} >/dev/null
-    COMMENT "[CodeCoverage] Running test driver ..."
+    COMMENT "${COVERAGE_COMMENT_PREFIX} Running coverage driver ..."
     )
 
-  add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+  add_custom_command(TARGET ${COVERAGE_TARGET_NAME} POST_BUILD
     COMMAND ${LCOV_PATH} --rc 'lcov_branch_coverage=1'
                          --directory .
                          --capture
-                         --output-file ${COVERAGE_INFO} ${ADD_COVERAGE_QUIET}
-    COMMENT "[CodeCoverage] Collecting coverage data ..."
+                         --output-file ${COVERAGE_RAW_DATA}
+                         ${COVERAGE_QUIET_FLAG}
+    COMMENT "${COVERAGE_COMMENT_PREFIX} Collecting coverage data ..."
     )
 
-  add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+  add_custom_command(TARGET ${COVERAGE_TARGET_NAME} POST_BUILD
     COMMAND ${LCOV_PATH} --rc 'lcov_branch_coverage=1'
-                         --extract ${COVERAGE_INFO} ${EXTRACT_DIRECTORIES}
-                         --output-file ${COVERAGE_CLEANED} ${ADD_COVERAGE_QUIET}
-    COMMENT "[CodeCoverage] Extracting project relevant data ..."
+                         --extract ${COVERAGE_RAW_DATA} ${EXTRACT_DIRECTORIES}
+                         --output-file ${COVERAGE_CLEAN_DATA}
+                         ${COVERAGE_QUIET_FLAG}
+    COMMENT "${COVERAGE_COMMENT_PREFIX} Extracting project relevant data ..."
     )
 
-  if(ADD_COVERAGE_HTML_REPORT)
+  if(${COVERAGE_REPORT})
     find_program(GENHTML_PATH genhtml)
     if(NOT GENHTML_PATH)
       message(FATAL_ERROR "genhtml not found! Aborting...")
     endif()
 
-    add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+    add_custom_command(TARGET ${COVERAGE_TARGET_NAME} POST_BUILD
       COMMAND ${GENHTML_PATH} --rc 'lcov_branch_coverage=1'
-                              -o ${ADD_COVERAGE_OUTPUT}
-                              ${COVERAGE_CLEANED}
-                              ${ADD_COVERAGE_QUIET}
-      COMMENT "[CodeCoverage] Generating HTML report ..."
+                              -o "${COVERAGE_REPORT_DIRECTORY}"
+                              "${COVERAGE_CLEAN_DATA}"
+                              "${COVERAGE_QUIET_FLAG}"
+      COMMENT "${COVERAGE_COMMENT_PREFIX} Generating report ..."
       )
 
-    add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+    add_custom_command(TARGET ${COVERAGE_TARGET_NAME} POST_BUILD
       COMMAND ;
-      COMMENT "[CodeCoverage] HTML report generated here: ./${ADD_COVERAGE_OUTPUT}/index.html"
+      COMMENT "${COVERAGE_COMMENT_PREFIX} Report generated at: ${COVERAGE_REPORT_DIRECTORY}/index.html"
       )
   endif()
 
-  add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+  add_custom_command(TARGET ${COVERAGE_TARGET_NAME} POST_BUILD
     COMMAND ${LCOV_PATH} --rc 'lcov_branch_coverage=1'
-                         --summary ${COVERAGE_CLEANED}
-    COMMENT "[CodeCoverage] Summary:"
+                         --summary ${COVERAGE_CLEAN_DATA}
+    COMMENT "${COVERAGE_COMMENT_PREFIX} Summary:"
     )
 
 endfunction()

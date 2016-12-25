@@ -91,7 +91,7 @@ script:
   - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCUTE_RUN_DURING_BUILD=Off
   - cmake --build . -- -j$(nproc)
   - ctest
-  - if [ "$BUILD_TYPE" == "Coverage" ]; then cmake --build . --target extfs_coverage; fi
+  - if [ "$BUILD_TYPE" == "Coverage" ]; then cmake --build . --target coverage; fi
 
 after_success:
   - if [ "$BUILD_TYPE" == "Coverage" ]; then sed -i'' -e "s_$(cd .. && pwd)/__g" coverage.info.cleaned; fi
