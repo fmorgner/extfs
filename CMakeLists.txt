@@ -24,7 +24,7 @@ if(${EXTFS_ENABLE_TESTS})
   include("CUTE")
   add_subdirectory("test")
 
-  if(${CMAKE_BUILD_TYPE} STREQUAL "Coverage")
+  if("${CMAKE_BUILD_TYPE}" STREQUAL "Coverage")
     include("CodeCoverage")
     add_coverage(${PROJECT_NAME}_coverage
       COMMAND ${CMAKE_COMMAND} --build . --target test
