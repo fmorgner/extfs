@@ -138,6 +138,11 @@ function(add_coverage TARGET_NAME)
     COMMENT "[CodeCoverage] Extracting project relevant data ..."
     )
 
+  add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+    COMMAND sed -i'' -e 's_${PROJECT_SOURCE_DIR}/__g' ${COVERAGE_CLEANED}
+    COMMENT "[CodeCoverage] Normalizing paths ..."
+    )
+
   if(ADD_COVERAGE_HTML_REPORT)
     find_program(GENHTML_PATH genhtml)
     if(NOT GENHTML_PATH)
@@ -146,7 +151,10 @@ function(add_coverage TARGET_NAME)
 
     add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
       COMMAND ${GENHTML_PATH} --rc 'lcov_branch_coverage=1'
-                              -o ${ADD_COVERAGE_OUTPUT} ${COVERAGE_CLEANED} ${ADD_COVERAGE_QUIET}
+                              -o ${CMAKE_BINARY_DIR}/${ADD_COVERAGE_OUTPUT}
+                              ${COVERAGE_CLEANED}
+                              ${ADD_COVERAGE_QUIET}
+      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
       COMMENT "[CodeCoverage] Generating HTML report ..."
       )
 
