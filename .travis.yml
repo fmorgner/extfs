@@ -94,5 +94,5 @@ script:
   - if [ "$BUILD_TYPE" == "Coverage" ]; then cmake --build . --target extfs_coverage; fi
 
 after_success:
-  - if [ "$BUILD_TYPE" == "Coverage" ]; then sed -i'' -e "s_$(cd .. && pwd)__g" coverage.info.cleaned; fi
+  - if [ "$BUILD_TYPE" == "Coverage" ]; then sed -i'' -e "s_$(cd .. && pwd)/__g" coverage.info.cleaned; fi
   - if [ "$BUILD_TYPE" == "Coverage" ]; then cd .. && coveralls-lcov --repo-token ${COVERALLS_API_TOKEN} build/coverage.info.cleaned; fi

@@ -17,11 +17,18 @@ void non_open_file_system_has_no_label()
   ASSERT(!disk.has_label());
   }
 
+void non_open_file_system_has_empty_label()
+  {
+  auto && disk = fs::extfs{"./THIS_DISK_DOES_NOT_EXIST"};
+  ASSERT_EQUAL("", disk.label());
+  }
+
 int main(int argc, char * argv[])
   {
   auto tests = cute::suite{
     CUTE(construction_with_inexistent_file_creates_extfs_that_is_not_open),
     CUTE(non_open_file_system_has_no_label),
+    CUTE(non_open_file_system_has_empty_label)
   };
 
   cute::xml_file_opener resultFile{argc, argv};

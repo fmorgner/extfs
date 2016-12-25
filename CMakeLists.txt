@@ -31,7 +31,7 @@ if(${EXTFS_ENABLE_TESTS})
       OUTPUT coverage
       DEPENDENCIES ${CUTE_TARGETS}
       SOURCE_DIRECTORIES "${PROJECT_SOURCE_DIR}/src/fs/*"
-      "${PROJECT_SOURCE_DIR}/include/fs/*"
+      "${PROJECT_SOURCE_DIR}/include/fs/**/*.hpp"
       QUIET
       HTML_REPORT
       )
