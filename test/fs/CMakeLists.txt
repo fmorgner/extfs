@@ -24,3 +24,5 @@ execute_process(
   )
 
 cute_test(extfs LIBRARIES extfs stdc++fs)
+
+add_subdirectory("detail")

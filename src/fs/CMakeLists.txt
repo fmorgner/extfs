@@ -6,5 +6,6 @@ endif()
 
 add_library(extfs
   ${LIBRARY_TYPE}
-  extfs.cpp
+  "extfs.cpp"
+  "detail/superblock.cpp"
   )

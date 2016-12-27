@@ -1,0 +1,125 @@
+#!/usr/bin/env python3
+
+import argparse
+import os
+import pprint
+import re
+import sys
+
+from enum import Enum
+
+
+class Type(Enum):
+    INT8 = {
+        'alias': 'int8',
+        'type': 'std::int8_t',
+    }
+    UINT8 = {
+        'alias': 'uint8',
+        'type': 'std::uint8_t',
+    }
+    CHAR = {
+        'alias': 'char',
+        'type': 'char',
+    }
+    SCHAR = {
+        'alias': 'schar',
+        'type': 'signed char',
+    }
+    UCHAR = {
+        'alias': 'uchar',
+        'type': 'unsigned char',
+    }
+
+    @classmethod
+    def fromstring(cls, str):
+        return getattr(cls, str.upper(), None)
+
+
+"""The settings of the header generator"""
+configuration = {
+    'inputFiles': [],
+    'outputDirectory': '.',
+    'columns': 16,
+    'filetype': 'hpp',
+    'elementType': Type.UINT8,
+}
+
+"""The arguments supported by arraydump"""
+argp = argparse.ArgumentParser(
+    prog='arraydump',
+    description='Convert binaries to C++ headers'
+)
+argp.add_argument('input', metavar='file', type=str, nargs='+',
+                  help='The input file to process')
+argp.add_argument('--output', metavar='dir', type=str,
+                  default=configuration['outputDirectory'],
+                  help='The target directory for the generated file(s)')
+argp.add_argument('--columns', metavar='cols', type=int,
+                  default=configuration['columns'],
+                  help='The number of columns in the output')
+argp.add_argument('--extension', metavar='ext', type=str,
+                  default=configuration['filetype'],
+                  help='The file extension for the generated header')
+argp.add_argument('--type', type=str, default=Type.UINT8.value['alias'],
+                  choices=[x.value['alias'] for x in list(Type)],
+                  help='The array element type')
+
+
+def generate_array(file):
+    size = os.path.getsize(file)
+    name = os.path.basename(file)
+    cols = configuration['columns']
+    cppid = re.sub('[^a-zA-Z_0-9]', '_', name)
+
+    buffer = '#ifndef %s_ARRDMP\n' % cppid.upper()
+    buffer += '#define %s_ARRDMP\n' % cppid.upper()
+    buffer += '#include<array>\n'
+    if not configuration['elementType'] in [Type.CHAR, Type.SCHAR, Type.UCHAR]:
+        buffer += '#include<cstdint>\n'
+
+    with open(file, 'rb') as handle:
+        buffer += '\n// generated from %s\n' % name
+        buffer += 'std::array<%s, %s> const %s = {{' % (
+            configuration['elementType'].value['type'],
+            size,
+            cppid
+        )
+        count = 0
+        byte = handle.read(1)
+        while byte != b'':
+            if count % cols == 0:
+                buffer += '\n  '
+
+            buffer += '0x%02x,' % int.from_bytes(byte, byteorder='little')
+
+            if count % cols != cols - 1 and count != size - 1:
+                buffer += ' '
+
+            count += 1
+            byte = handle.read(1)
+        buffer += '\n}};\n'
+        buffer += '\n#endif'
+        return buffer
+
+
+if __name__ == '__main__':
+    parsed = argp.parse_args()
+    configuration['inputFiles'] = [os.path.abspath(p) for p in parsed.input]
+    configuration['outputDirectory'] = os.path.abspath(parsed.output)
+    configuration['columns'] = parsed.columns
+    configuration['filetype'] = parsed.extension
+    configuration['elementType'] = Type.fromstring(parsed.type)
+
+    if not os.path.isdir(configuration['outputDirectory']):
+        exit('The ouput directory does not exist')
+
+    if not all(os.path.isfile(p) for p in configuration['inputFiles']):
+        exit('One or more of the input files does not exist')
+
+    for file in configuration['inputFiles']:
+        outname = os.path.basename(file) + '.' + configuration['filetype']
+        outpath = configuration['outputDirectory'] + '/' + outname
+        data = generate_array(file)
+        with open(outpath, 'w') as outhandle:
+            outhandle.write(data)
