@@ -14,3 +14,4 @@ User documentation
 
    api/index
    internal/index
+   tools/index
