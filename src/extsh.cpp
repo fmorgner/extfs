@@ -1,5 +1,7 @@
 #include "fs/extfs.hpp"
 
+#include <linenoise.h>
+
 #include <cstdint>
 #include <iostream>
 #include <stdexcept>
@@ -15,7 +17,7 @@ enum struct result : std::uint8_t
 
 result process(std::string const & command)
   {
-  if(command == "exit")
+  if(command == "exit" || command.empty())
     {
     return result::exit;
     }
@@ -25,10 +27,19 @@ result process(std::string const & command)
 
 std::string prompt(fs::extfs const & disk)
   {
-  std::cout << '[' << (disk.has_label() ? disk.label() : "No Label") << "] >>> ";
-  std::string command{};
-  std::cin >> command;
-  return command;
+  using namespace std::string_literals;
+
+  auto const promptText = "["s + (disk.has_label() ? disk.label() : "No Label") + "] > ";
+  auto const input = linenoise(promptText.c_str());
+  if(input)
+    {
+    linenoiseHistoryAdd(input);
+    auto const inputString = std::string{input};
+    linenoiseFree(input);
+    return inputString;
+    }
+
+  return {};
   }
 
 void repl(fs::extfs & disk)
@@ -59,6 +70,7 @@ int main(int argc, char const * argv[])
 
   if(disk.open())
     {
+    linenoiseHistorySetMaxLen(1024);
     repl(disk);
     }
   else

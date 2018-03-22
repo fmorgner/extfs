@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.2)
 project("extfs"
-  LANGUAGES CXX
+  LANGUAGES C CXX
   VERSION 1.0
   )
 
@@ -18,7 +18,10 @@ include("ConanPackages")
 option(EXTFS_BUILD_STATIC "Build extfs as a static library" ON)
 option(EXTFS_ENABLE_TESTS "Enable CUTE unit tests" ON)
 
+add_subdirectory("external")
+
 include_directories("include")
+include_directories(SYSTEM "external/linenoise")
 add_subdirectory("src")
 
 if(${EXTFS_ENABLE_TESTS})
